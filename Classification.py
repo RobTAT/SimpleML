@@ -5,6 +5,7 @@
 import numpy as np
 import random
 import operator
+import math
 
 from sklearn import svm, neighbors
 from sklearn.grid_search import GridSearchCV
@@ -84,6 +85,28 @@ class Classification:
 
 		return classes
 		
+	#---------------------------------------
+	def uncertainty_margin(self, x):
+		YP = self.predict(x, all = True)
+		y1, p1 = YP[0]
+		y2, p2 = YP[1]
+		return 1. - (p1 - p2)
+		
+	#---------------------------------------
+	def uncertainty_prediction(self, x):
+		YP = self.predict(x, all = True)
+		y1, p1 = YP[0]
+		return 1. - p1
+	
+	#---------------------------------------
+	def uncertainty_entropy(self, x):
+		YP = self.predict(x, all = True)
+		P = [ p for (y,p) in YP ]
+		
+		entropy = -1.0 * sum( [ p * math.log(p, len(P)) for p in P if p > 0 ] )
+	
+		return entropy
+	#---------------------------------------
 	#---------------------------------------
 	
 	

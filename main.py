@@ -11,7 +11,9 @@ if __name__ == "__main__":
 	random.seed( 1234 )
 	
 	#-----------------------------------
-	data = Data("data_MSL.mat", "array_slip_ratio")
+	# data = Data("data_MSL.mat", "array_slip_ratio")
+	data = Data()
+	print data.nb_features
 	
 	#-----------------------------------
 	viz = Visualize()

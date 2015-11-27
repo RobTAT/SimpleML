@@ -1,23 +1,12 @@
-'''
-| This is to format and read your data 
-'''
-
 import scipy.io
 import os
+
+from sklearn.datasets import load_digits
 
 class Data:
 	def __init__(self, source_file = "", target_name = ""):
 		if source_file == "":
-			self.Y = [ 1, 2, 3, 4, 5 ]
-			self.YY = self.Y[:]
-			self.X = [ [1, 8], [9, 9], [0, 4], [0, 6], [3, 9] ]
-			self.X_transpose = [ list(v) for v in zip(*self.X) ] #FIXME define external function to transpose and call it
-			
-			self.nb_data = len(self.X)
-			self.nb_features = len(self.X[0])
-			
-			self.features_name = ["feature 1", "feature 2"]
-			self.target_name = "target"
+			self.loadFromSklearn()
 			
 		else:
 			file_name, file_extension = os.path.splitext( source_file )
@@ -27,6 +16,21 @@ class Data:
 			else:
 				print "TODO"
 	
+	#---------------------------------------
+	def loadFromSklearn(self): # TODO add other datasets etc.
+		digits = load_digits()
+		
+		self.Y = [y for y in digits["target"]]
+		self.YY = self.Y[:]
+		self.X = [list(x) for x in digits["data"]]
+		self.X_transpose = [ list(v) for v in zip(*self.X) ]
+		
+		self.nb_data = len(self.X)
+		self.nb_features = len(self.X[0])
+		
+		self.features_name = [ "feature "+str(i) for i in range(self.nb_features) ]
+		self.target_name = "target"
+		
 	#---------------------------------------
 	def readFromCSV(self, source_file, target_name = ""):
 		print "TODO"

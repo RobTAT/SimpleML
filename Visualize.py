@@ -20,7 +20,7 @@ class Visualize:
 	#---------------------------------------
 	def PCA_Plot(self, axs, axs_labels = None, color = 'r', marker = '.', fig = None):
 		X = [ list(v) for v in zip(*axs) ]
-		pca = PCA(n_components=2)
+		pca = PCA(n_components=3)
 		XX = pca.fit(X).transform(X)
 		XX = [list(x) for x in XX]
 		axs_r = [ list(v) for v in zip(*XX) ]

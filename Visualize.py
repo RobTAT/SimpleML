@@ -1,6 +1,9 @@
 import sys
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+
+from sklearn.decomposition import PCA
 
 class Visualize:
 	def __init__(self):
@@ -13,6 +16,16 @@ class Visualize:
 		
 		self.plots = None
 		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
+	
+	#---------------------------------------
+	def PCA_Plot(self, axs, axs_labels = None, color = 'r', marker = '.', fig = None):
+		X = [ list(v) for v in zip(*axs) ]
+		pca = PCA(n_components=2)
+		XX = pca.fit(X).transform(X)
+		XX = [list(x) for x in XX]
+		axs_r = [ list(v) for v in zip(*XX) ]
+		
+		self.plot(axs_r, axs_labels, color, marker, fig)
 	
 	#---------------------------------------
 	def start_plot( self, axs_labels ):
@@ -57,9 +70,9 @@ class Visualize:
 			self.plots.set_zlim( self.xyz_range['z'] )
 		
 	#---------------------------------------
-	def end_plot(self, figure_name = None):
-		if figure_name is None: plt.show()
-		else: plt.savefig(figure_name)
+	def end_plot(self, fig = None):
+		if fig is None: plt.show()
+		else: plt.savefig(fig)
 		
 		# plt.grid(True) # FIXME
 		plt.close()
@@ -68,12 +81,12 @@ class Visualize:
 		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
 		
 	#---------------------------------------
-	def plot(self, axs, axs_labels = None, color = 'r', marker = '.', figure_name = None):
+	def plot(self, axs, axs_labels = None, color = 'r', marker = '.', fig = None):
 		self.do_plot( axs, axs_labels, color, marker )
-		self.end_plot( figure_name )
+		self.end_plot( fig )
 		
 	#---------------------------------------
-	def plot_groups(self, groups, figure_name = None):
+	def plot_groups(self, groups, fig = None):
 		colors = ['r', 'b', 'g','m', 'y', 'k']
 		keys = groups.keys()
 		
@@ -84,7 +97,7 @@ class Visualize:
 			cl = colors[i % len(colors)]
 			self.do_plot( zip(* groups[label] ), color = cl )
 		
-		self.end_plot(figure_name)
+		self.end_plot(fig)
 		
 	#---------------------------------------
 	

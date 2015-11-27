@@ -11,7 +11,7 @@ class Data:
 			self.Y = [ 1, 2, 3, 4, 5 ]
 			self.YY = self.Y[:]
 			self.X = [ [1, 8], [9, 9], [0, 4], [0, 6], [3, 9] ]
-			self.X_transpose = [ list(v) for v in zip(*self.X) ]
+			self.X_transpose = [ list(v) for v in zip(*self.X) ] #FIXME define external function to transpose and call it
 			
 			self.nb_data = len(self.X)
 			self.nb_features = len(self.X[0])

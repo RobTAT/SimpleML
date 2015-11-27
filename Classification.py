@@ -1,7 +1,3 @@
-'''
-| This is to do Clustering on data
-'''
-
 import numpy as np
 import random
 import operator
@@ -9,7 +5,6 @@ import math
 
 from sklearn import svm, neighbors
 from sklearn.grid_search import GridSearchCV
-# from sklearn.metrics import *
 
 class Classification:
 	def __init__(self, data, method = "svm"):

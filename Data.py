@@ -1,5 +1,6 @@
 import scipy.io
 import os
+import numpy
 
 from sklearn.datasets import load_digits
 
@@ -31,6 +32,33 @@ class Data:
 		self.features_name = [ "feature "+str(i) for i in range(self.nb_features) ]
 		self.target_name = "target"
 		
+	#---------------------------------------
+	def loadBusesData(self, source_file):
+		mat = scipy.io.loadmat(source_file)
+		
+		data_0 = mat.values()[0]
+		
+		data_0 = [ [ v if not numpy.isnan(v) else 0. for v in x ] for x in data_0 ]
+		data_0[2] = [ v if v < 200 else 0. for v in data_0[2] ]
+		data_0[4] = [ v if v < 200 else 0. for v in data_0[4] ]
+		data_0[5] = [ v if v < 3000 else 0. for v in data_0[5] ]
+		data_0[6] = [ v if v < 500 else 0. for v in data_0[6] ]
+		data_0[10] = [ v if v < 20 else 0. for v in data_0[10] ]
+		data_0[11] = [ v if v < 500000 else 0. for v in data_0[11] ]
+		data_0[12] = [ v if v < 200 else 0. for v in data_0[12] ]
+		
+		self.features_name = ["Timestamp","AcceleratorPedalPos","AmbientAirTemperature","BrakePedalPos","EngineCoolantTemperature","EngineSpeed","Fuel Rate", "RelSpdFrontLeft","RelSpdFrontRight","Selected Gear","SteeringWheelAngle","Total Vehicle Distance","VehicleSpeed"]
+		self.target_name = ""
+		
+		self.X = [ list(v) for v in data_0 ]
+		self.X_transpose = [ list(v) for v in zip(*self.X) ]
+		
+		self.Y = self.X_transpose[0]
+		self.YY = self.Y[:]
+		
+		self.nb_data = len(self.X)
+		self.nb_features = len(self.X_transpose)
+
 	#---------------------------------------
 	def readFromCSV(self, source_file, target_name = ""):
 		print "TODO"

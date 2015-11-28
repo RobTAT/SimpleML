@@ -7,22 +7,25 @@ from Clustering import Clustering
 from Classification import Classification
 from Regression import Regression
 
+#-----------------------------------
+
+
+#-----------------------------------
 if __name__ == "__main__":
 	random.seed( 1234 )
 	
 	#-----------------------------------
 	# data = Data("data_MSL.mat", "array_slip_ratio")
 	data = Data()
+	data.loadBusesData("data_buses.mat")
+	
 	print data.nb_features
 	
 	#-----------------------------------
 	viz = Visualize()
 	
-	viz.PCA_Plot(data.X_transpose, color = data.Y)
-	
-	# viz.plot(data.X_transpose, data.features_name, fig = "vizu.png", color = data.Y)
-	# viz.do_plot(data.X_transpose)
-	# viz.end_plot()
+	# viz.PCA_Plot(data.X_transpose, fig = "_PCA_.png")
+	# viz.plot(data.X_transpose[:3], data.features_name[:3], fig = "vizu.png", color = data.X_transpose[0])
 	
 	#-----------------------------------
 	# clustering = Clustering( data )
@@ -55,11 +58,10 @@ if __name__ == "__main__":
 	regression.train()
 	_Y_ = [ regression.predict(x) for x in data.X ]
 	viz.plot(data.X_transpose, color = _Y_, fig = "svm_regression.png")
-	
+	'''
 	#-----------------------------------
 	explore = Explore(data)
 	explore.fire()
-	'''
 	
 	#-----------------------------------
 	#-----------------------------------

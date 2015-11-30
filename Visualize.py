@@ -1,7 +1,9 @@
 import sys
+import os
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import pylab as pl
 
 from sklearn.decomposition import PCA
 
@@ -10,7 +12,6 @@ class Visualize:
 		self.w = 15 # width of the plots
 		self.h = 10 # hight of the plots
 		
-		self.cmap = plt.copper()
 		self.lw = 0
 		self.s = 20
 		
@@ -57,10 +58,11 @@ class Visualize:
 		if self.plots is None:
 			self.start_plot( axs_labels )
 		
-		# print axs_labels
-		self.plots.scatter( *axs, c = color, marker = marker, lw = self.lw, s = self.s, cmap = self.cmap )
+		if marker == '-': self.plots.plot( *axs, c = color, lw = 1 )
+		else: self.plots.scatter( *axs, c = color, marker = marker, lw = self.lw, s = self.s, cmap = plt.copper() )
 		
-		# Re adjusting the xrange, yrange and zrange limits
+		# Re adjusting the xrange, yrange and zrange limits FIXME
+		'''
 		min_x, max_x = self.xyz_range['x']; self.xyz_range['x'] = [ min( min_x, min(axs[0]) ), max( max_x, max(axs[0]) ) ]
 		min_y, max_y = self.xyz_range['y']; self.xyz_range['y'] = [ min( min_y, min(axs[1]) ), max( max_y, max(axs[1]) ) ]
 		self.plots.set_xlim( self.xyz_range['x'] )
@@ -68,7 +70,7 @@ class Visualize:
 		if len(axs) >= 3:
 			min_z, max_z = self.xyz_range['z']; self.xyz_range['z'] = [ min( min_z, min(axs[2]) ), max( max_z, max(axs[2]) ) ]
 			self.plots.set_zlim( self.xyz_range['z'] )
-		
+		'''
 	#---------------------------------------
 	def end_plot(self, fig = None):
 		if fig is None: plt.show()
@@ -98,6 +100,20 @@ class Visualize:
 			self.do_plot( zip(* groups[label] ), color = cl )
 		
 		self.end_plot(fig)
+		
+	#---------------------------------------
+	def animate_from_images(self, path):
+		files = [path+f for f in os.listdir(path) if f[-3:] == 'png']
+		pl.ion()
+		img = None
+		for f in files:
+			im=pl.imread(f)
+			if img is None: img = pl.imshow(im)
+			else: img.set_data(im)
+			pl.pause(0.001)
+			pl.draw()
+		pl.close()
+
 		
 	#---------------------------------------
 	

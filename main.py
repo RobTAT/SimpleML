@@ -6,26 +6,31 @@ from Visualize import Visualize
 from Clustering import Clustering
 from Classification import Classification
 from Regression import Regression
-
-#-----------------------------------
-
+from GNG import GNG
 
 #-----------------------------------
 if __name__ == "__main__":
 	random.seed( 1234 )
 	
 	#-----------------------------------
-	# data = Data("data_MSL.mat", "array_slip_ratio")
-	data = Data()
-	data.loadBusesData("data_buses.mat")
+	data = Data("data_MSL.mat", "array_slip_ratio")
+	# data = Data()
+	# data.loadBusesData("data_buses.mat")
 	
-	print data.nb_features
+	print "nb features in data:", data.nb_features
 	
 	#-----------------------------------
 	viz = Visualize()
 	
-	# viz.PCA_Plot(data.X_transpose, fig = "_PCA_.png")
+	# viz.PCA_Plot(data.X_transpose, fig = "_PCA_.png", color = data.Y)
 	# viz.plot(data.X_transpose[:3], data.features_name[:3], fig = "vizu.png", color = data.X_transpose[0])
+	
+	#-----------------------------------
+	gng = GNG(period = 100)
+	# gng.train(data.X, step = 5000)
+	print len( gng.get_ccn() )
+	print len( gng.get_nodes_positions() )
+	viz.animate_from_images('graph_plots\\')
 	
 	#-----------------------------------
 	# clustering = Clustering( data )
@@ -60,10 +65,11 @@ if __name__ == "__main__":
 	viz.plot(data.X_transpose, color = _Y_, fig = "svm_regression.png")
 	'''
 	#-----------------------------------
-	explore = Explore(data)
-	explore.fire()
+	# explore = Explore(data)
+	# explore.fire()
 	
 	#-----------------------------------
+	
 	#-----------------------------------
 	#-----------------------------------
 	

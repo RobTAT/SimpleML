@@ -7,6 +7,7 @@ from Clustering import Clustering
 from Classification import Classification
 from Regression import Regression
 from GNG import GNG
+from IGNG import IGNG
 
 #-----------------------------------
 if __name__ == "__main__":
@@ -17,6 +18,9 @@ if __name__ == "__main__":
 	# data = Data()
 	# data.loadBusesData("data_buses.mat")
 	
+	# data.rescale()
+	data.standardize()
+	
 	print "nb features in data:", data.nb_features
 	
 	#-----------------------------------
@@ -26,11 +30,17 @@ if __name__ == "__main__":
 	# viz.plot(data.X_transpose[:3], data.features_name[:3], fig = "vizu.png", color = data.X_transpose[0])
 	
 	#-----------------------------------
-	gng = GNG(period = 100)
-	# gng.train(data.X, step = 5000)
+	gng = GNG(period = 50)
+	gng.train(data.X, step = 1000, directory = "graph_plots_GNG\\50\\")
 	print len( gng.get_ccn() )
 	print len( gng.get_nodes_positions() )
-	viz.animate_from_images('graph_plots\\')
+	# viz.animate_from_images('graph_plots\\')
+	
+	#-----------------------------------
+	# igng = IGNG( data = data, radius = IGNG.estimate_radius(data.X) / 5. )
+	# igng.train(data.X, step = 1000, directory = "graph_plots\\5_data_target\\")
+	# print len( igng.get_ccn() )
+	# print len( igng.get_nodes_positions() )
 	
 	#-----------------------------------
 	# clustering = Clustering( data )

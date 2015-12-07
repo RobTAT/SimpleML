@@ -1,6 +1,6 @@
 import scipy.io
 import os
-import numpy
+import numpy as np
 
 from sklearn.datasets import load_digits
 
@@ -38,7 +38,7 @@ class Data:
 		
 		data_0 = mat.values()[0]
 		
-		data_0 = [ [ v if not numpy.isnan(v) else 0. for v in x ] for x in data_0 ]
+		data_0 = [ [ v if not np.isnan(v) else 0. for v in x ] for x in data_0 ]
 		data_0[2] = [ v if v < 200 else 0. for v in data_0[2] ]
 		data_0[4] = [ v if v < 200 else 0. for v in data_0[4] ]
 		data_0[5] = [ v if v < 3000 else 0. for v in data_0[5] ]
@@ -82,6 +82,28 @@ class Data:
 		self.nb_features = len(self.X[0])
 		
 	#---------------------------------------
+	def rescale(self):
+		X_transpose = []
+		for fe in self.X_transpose:
+			min_fe = min(fe)*1.
+			max_fe = max(fe)*1.
+			X_transpose.append( [ (v - min_fe) / (max_fe - min_fe) for v in fe ] )
+		
+		self.X_transpose = X_transpose
+		self.X = [ list(v) for v in zip(*self.X_transpose) ]
+		
+	#---------------------------------------
+	def standardize(self):
+		X_transpose = []
+		for fe in self.X_transpose:
+			mean_fe = np.mean(fe)*1.
+			std_fe = np.std(fe)*1.
+			X_transpose.append( [ (v - mean_fe) / std_fe for v in fe ] )
+		
+		self.X_transpose = X_transpose
+		self.X = [ list(v) for v in zip(*self.X_transpose) ]
+		
+	#---------------------------------------
 	def discretize_Y(self, n_classes = 2):
 		# FIXME not sure if correct
 		min_Y = min(self.Y); max_Y = max(self.Y)
@@ -102,8 +124,3 @@ class Data:
 		self.Y = self.YY[:]
 		
 	#---------------------------------------
-	# Scale only one data point (a list L) to make its values in [0, 1]
-	def scale(self, L):
-		maxL = max(L)*1.
-		minL = min(L)*1.
-		return [0.5]*len(L) if minL == maxL else [ (v - minL) / (maxL -minL) for v in L ] 

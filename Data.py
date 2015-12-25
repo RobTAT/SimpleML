@@ -1,6 +1,7 @@
 import scipy.io
 import os
 import numpy as np
+from DatasetLoader import *
 
 from sklearn.datasets import load_digits
 

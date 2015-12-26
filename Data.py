@@ -10,6 +10,9 @@ class Data:
 		if source_file == "":
 			self.loadFromSklearn()
 			
+		elif source_file == "weka":
+			self.loadWekaFormat()
+			
 		else:
 			file_name, file_extension = os.path.splitext( source_file )
 			
@@ -18,6 +21,24 @@ class Data:
 			else:
 				print "TODO"
 	
+	#---------------------------------------
+	def loadWekaFormat(self, DATASETNAME = "optdigits"): # pendigits, optdigits
+		dataset = DatasetLoader("datasets\\"+DATASETNAME)
+		
+		self.Ty = list(dataset.labels_test)
+		self.Tx = list(dataset.data_test)
+		
+		self.Y = list(dataset.labels_train)
+		self.YY = self.Y[:]
+		self.X = list(dataset.data_train)
+		self.X_transpose = [ list(v) for v in zip(*self.X) ]
+		
+		self.nb_data = len(self.X)
+		self.nb_features = len(self.X[0])
+		
+		self.features_name = [ "feature "+str(i) for i in range(self.nb_features) ]
+		self.target_name = "target"
+		
 	#---------------------------------------
 	def loadFromSklearn(self): # TODO add other datasets etc.
 		digits = load_digits()

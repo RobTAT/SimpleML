@@ -1,3 +1,7 @@
+import numpy as np
+import copy
+import random
+
 class DatasetLoader:
 	#--------------------------------------------------------------------------------------------------------
 	def __init__(self, datasetname, p = 0.0, noise_type = 1):

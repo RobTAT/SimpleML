@@ -14,7 +14,7 @@ class ActiveLearning:
 		self.budget = budget
 		self.accuracys = []
 		
-		self.clf = Classification( self.Lx, self.Ly, method = method )
+		self.clf = Classification( self.Lx, self.Ly, method = method, Vx = Lx+Ux, Vy = Ly+Uy )
 		self.clf.train()
 		
 	#---------------------------------------
@@ -31,7 +31,7 @@ class ActiveLearning:
 			self.Ux.pop(id)
 			self.Uy.pop(id)
 
-			self.clf = Classification( self.Lx, self.Ly, method = self.clf.method )
+			self.clf.X = self.Lx; self.clf.Y = self.Ly
 			self.clf.train()
 			
 			test_accuracy = self.clf.getTestAccuracy( self.Tx, self.Ty )
@@ -53,12 +53,12 @@ class ActiveLearning:
 			elif mtd == "entropy": informativeness = self.clf.uncertainty_entropy(x)
 			elif mtd == "random": informativeness = random.uniform(0., 1.)
 			
-			'''
 			elif mtd == "weight":
 				if ix in ids[:10]:
-					informativeness = getInformativeness(h, x, X_train, Y_train)
+					informativeness = self.clf.uncertainty_weight(x, self.Lx, self.Ly)
 				else: informativeness = 0.
 			
+			'''
 			elif mtd == "expectedErrorReduction":
 				if ix in ids[:10]:
 					sums = 0.

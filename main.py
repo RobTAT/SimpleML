@@ -11,7 +11,7 @@ from IGNG import IGNG
 
 #-----------------------------------
 if __name__ == "__main__":
-	random.seed( 1234 )
+	random.seed( 12345 )
 	
 	#-----------------------------------
 	data = Data("data_MSL.mat", "array_slip_ratio")

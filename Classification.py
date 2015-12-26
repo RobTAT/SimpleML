@@ -8,9 +8,12 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import *
 
 class Classification:
-	def __init__(self, X, Y, method = "svm"):
+	def __init__(self, X, Y, method = "svm", Vx = None, Vy = None):
 		self.X = X
 		self.Y = Y
+		
+		self.Vx = Vx
+		self.Vy = Vy
 		
 		self.method = method
 		self.random_seed = 12345 # set to None for random
@@ -24,22 +27,36 @@ class Classification:
 			self.K = self.knn_best_params()
 		
 	#---------------------------------------
-	def svm_best_params(self, data_limit = 500):
-		indexes = range(len(self.X))
+	def svm_best_params(self, data_limit = 1500):
+		if self.Vx == None:
+			Vx = self.X
+			Vy = self.Y
+		else:
+			Vx = self.Vx
+			Vy = self.Vy
+		
+		indexes = range(len(Vx))
 		random.shuffle(indexes)
-		X = [ self.X[i] for i in indexes ][:data_limit]
-		Y = [ self.Y[i] for i in indexes ][:data_limit]
+		X = [ Vx[i] for i in indexes ][:data_limit]
+		Y = [ Vy[i] for i in indexes ][:data_limit]
 		
 		param_grid = [ {'C': [1, 10, 100, 1000], 'gamma': [0.1, 0.01, 0.001, 0.0001]} ]
 		clf = GridSearchCV(estimator=svm.SVC(), param_grid=param_grid)
 		clf.fit( np.array( X ), np.array( Y ) )
 		return clf.best_estimator_.gamma, clf.best_estimator_.C
 	
-	def knn_best_params(self, data_limit = 500):
-		indexes = range(len(self.X))
+	def knn_best_params(self, data_limit = 1500):
+		if self.Vx == None:
+			Vx = self.X
+			Vy = self.Y
+		else:
+			Vx = self.Vx
+			Vy = self.Vy
+			
+		indexes = range(len(Vx))
 		random.shuffle(indexes)
-		X = [ self.X[i] for i in indexes ][:data_limit]
-		Y = [ self.Y[i] for i in indexes ][:data_limit]
+		X = [ Vx[i] for i in indexes ][:data_limit]
+		Y = [ Vy[i] for i in indexes ][:data_limit]
 		
 		param_grid = [ { 'n_neighbors': [5, 10, 15, 20, 25, 30] } ]
 		clf = GridSearchCV(estimator=neighbors.KNeighborsClassifier(), param_grid=param_grid)
@@ -47,14 +64,10 @@ class Classification:
 		return clf.best_estimator_.n_neighbors
 
 	#---------------------------------------
-	def train(self, data_limit = 10000): # TODO implement sample_weight + make method to shuffle and return sublist with data_limit
-		indexes = range(len(self.X))
-		random.shuffle(indexes)
-		X = [ self.X[i] for i in indexes ][:data_limit]
-		Y = [ self.Y[i] for i in indexes ][:data_limit]
-	
+	def train(self, W = None): # TODO implement sample_weight + make method to shuffle and return sublist with data_limit
 		if self.method == "svm":
-			self.h = svm.SVC(gamma=self.GAMMA, C=self.C, random_state = self.random_seed, probability=True).fit(X, Y)
+			W = W if W is not None else [1.]*len(self.X)
+			self.h = svm.SVC(gamma=self.GAMMA, C=self.C, random_state = self.random_seed, probability=True).fit(self.X, self.Y, sample_weight = W)
 			
 		elif self.method == "knn":
 			print "TODO"
@@ -118,8 +131,11 @@ class Classification:
 			w = (upper + lower) / 2.
 			Lww = [1.]*len(Ly) + [w]
 			
-			hh = svm.SVC(gamma=cf.GAMMA, C=cf.C, random_state = RANDOM_SEED, probability=True).fit(Lxx, Lyy, sample_weight = Lww) #TODO change to Classification
+			# temp_clf = self.__class__(Lxx, Lyy, method = self.method, Vx = self.Vx, Vy = self.Vy)
+			# temp_clf.train(Lww)
+			# y1_new = self.predict_label(x)
 			
+			hh = svm.SVC(gamma=self.GAMMA, C=self.C, random_state = self.random_seed, probability=True).fit(Lxx, Lyy, sample_weight = Lww) #TODO
 			y1_new = hh.predict([x])[0]
 			
 			if y1_new == y2: upper = w # if y1_new != y1: upper = w
@@ -129,6 +145,10 @@ class Classification:
 		
 		return info
 
+	#---------------------------------------
+	def predict_label(self, x):
+		return self.h.predict([x])[0]
+	
 	#---------------------------------------
 	def getMarginInfo(self, x):
 		y1 = self.h.predict([x])[0]

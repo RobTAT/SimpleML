@@ -127,7 +127,7 @@ class Classification:
 		w = 1.; y1_new = y1;
 		step = 0.001; lower = 0.; upper = 10.
 		
-		while (upper - lower > step) :
+		while (upper - lower > step):
 			w = (upper + lower) / 2.
 			Lww = [1.]*len(Ly) + [w]
 			

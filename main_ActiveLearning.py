@@ -14,13 +14,14 @@ if __name__ == "__main__":
 	print "nb features in data:", data.nb_features
 	
 	#-----------------------------------
-	AL_Method = "etc" # margin proba entropy random weight expectedErrorReduction etc
-	AL_Init = 50 # margin proba entropy random weight expectedErrorReduction etc
+	AL_Method = "test" # margin proba entropy random etc expectedErrorReduction weight test
+	AL_Init = 50
 	
 	al = ActiveLearning( data.X[:AL_Init], data.Y[:AL_Init], data.X[AL_Init:], data.Y[AL_Init:], data.Tx, data.Ty )
 	al.train( mtd = AL_Method )
 	
 	filename = "_optdigits."+AL_Method+"."+str(AL_Init)+".opt-"+str(al.optimization_limit)+"-"+al.optimization_method+".txt"
+	# filename = "_pendigits."+AL_Method+"."+str(AL_Init)+".opt-"+str(al.optimization_limit)+"-"+al.optimization_method+".txt"
 	Util.pickleSave(filename, al)
 	al = Util.pickleLoad(filename)
 	

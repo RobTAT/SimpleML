@@ -36,14 +36,14 @@ class A2ING(Node):  # Define a graph topology of nodes
 		return estimated_radius
 		
 	#---------------------------------------
-	def __init__(self, radius = 0., data = None, eps_b=0.3, eps_n=0.006, max_age = 50, mature_age = -1):
+	def __init__(self, radius = 0., data = None, eps_b=0.2, eps_n=0.006, max_age = 50, mature_age = -1):
 		self.data = data # FIXME
 		
 		self.graph = graph.Graph()
 		self.r = radius
 		super(A2ING, self).__init__()
 		
-		self.eps_r = 0.3
+		self.eps_r = 0.2
 		self.eps_b = eps_b
 		self.eps_n = eps_n
 		self.max_age = max_age

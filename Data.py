@@ -22,7 +22,7 @@ class Data:
 				print "TODO"
 	
 	#---------------------------------------
-	def loadWekaFormat(self, DATASETNAME = "optdigits"): # pendigits, optdigits
+	def loadWekaFormat(self, DATASETNAME = "optdigits"): # optdigits, pendigits
 		dataset = DatasetLoader("datasets\\"+DATASETNAME)
 		
 		self.Ty = list(dataset.labels_test)

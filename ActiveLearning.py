@@ -25,7 +25,7 @@ class ActiveLearning:
 		
 		self.a2ing = A2ING()
 		for i,x in enumerate(self.Lx): self.a2ing.learn(x, self.Ly[i])
-		self.outsiders_rate = sum([ 1. if self.a2ing.isOutsider(dp) else 0. for dp in self.Ux]) / ( len(self.Ux) )
+		self.outsiders_rate = sum([ 1. if self.a2ing.isOutsider(dp) else 0. for dp in self.Ux]) / len(self.Ux)
 		
 	#---------------------------------------
 	def train(self, mtd = "margin"): # TODO implement sample_weight + make method to shuffle and return sublist with data_limit
@@ -38,7 +38,6 @@ class ActiveLearning:
 			qx = self.Ux[id]
 			qy = self.Uy[id]
 			
-			# print len(self.a2ing.graph.nodes), self.a2ing.isOutsider(qx), self.a2ing.r
 			self.a2ing.learn(qx, qy)
 			
 			self.Lx.append(qx)
@@ -52,16 +51,15 @@ class ActiveLearning:
 			test_accuracy = self.clf.getTestAccuracy( self.Tx, self.Ty )
 			self.accuracys.append( test_accuracy )
 			
-			print "i=", i, "; acc=%.4f"%test_accuracy, "%.4f"%np.mean(self.accuracys), "%.4f"%np.average(self.accuracys, weights = range(1,1+len(self.accuracys))), len(self.a2ing.graph.nodes), self.a2ing.r, scores[0], self.outsiders_rate
+			self.outsiders_rate = sum([ 1. if self.a2ing.isOutsider(dp) else 0. for dp in self.Ux]) / len(self.Ux)
 			
-			self.outsiders_rate = sum([ 1. if self.a2ing.isOutsider(dp) else 0. for dp in self.Ux]) / ( len(self.Ux) )
-			# TODO self.outsiders_rate defined independently of the radius (outsiders/insiders), but acording to proba of outsider using pvalue
-		
+			print "i=", i, "; acc=%.4f"%test_accuracy, "%.4f"%np.mean(self.accuracys), "%.4f"%np.average(self.accuracys, weights = range(1,1+len(self.accuracys))), len(self.a2ing.graph.nodes), self.a2ing.r, self.outsiders_rate
+			
 	#---------------------------------------
 	def sortForInformativeness(self, mtd):
 		if mtd in ["etc", "etc_", "expectedErrorReduction", "weight", "optimal"] :
 			ids, scores = self.sortForInformativeness(self.optimization_method)
-		
+			
 		scores = []
 		for ix, x in enumerate(self.Ux):
 			y1, y2, p1, p2 = self.clf.getMarginInfo(x)
@@ -138,7 +136,12 @@ class ActiveLearning:
 				
 			#---------------------------------------------------------
 			elif mtd == "test":
-				informativeness = self.clf.uncertainty_margin(x) * (1. + self.outsiders_rate if self.a2ing.isOutsider(x) else 1.)
+				# informativeness = self.clf.uncertainty_margin(x) * (1. if self.a2ing.isOutsider(x) else 0.)
+				
+				if self.outsiders_rate > 0.: informativeness = self.clf.uncertainty_margin(x) * (1. if self.a2ing.isOutsider(x) else 0.)
+				else: informativeness = self.clf.uncertainty_margin(x)
+				
+				# informativeness = self.clf.uncertainty_margin(x) * (1. + self.outsiders_rate if self.a2ing.isOutsider(x) else 1.)
 				
 			scores.append( informativeness )
 		

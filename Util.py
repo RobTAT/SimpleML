@@ -1,7 +1,17 @@
 import cPickle
 import json
+import random
 
 class Util:
+	#---------------------------------------
+	@staticmethod
+	def shuffle_related_lists(L1, L2):
+		indexes = range(len(L1))
+		random.shuffle(indexes)
+		L1 = [ L1[i] for i in indexes ]
+		L2 = [ L2[i] for i in indexes ]
+		return L1, L2
+
 	#---------------------------------------
 	@staticmethod
 	def weighted_choice(items, weights):

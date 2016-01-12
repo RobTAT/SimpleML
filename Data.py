@@ -2,16 +2,17 @@ import scipy.io
 import os
 import numpy as np
 from DatasetLoader import *
+from Util import Util
 
-from sklearn.datasets import load_digits
+from sklearn.datasets import load_digits, load_iris
 
 class Data:
 	def __init__(self, source_file = "", target_name = ""):
-		if source_file == "":
-			self.loadFromSklearn()
+		if source_file in ["digits", "iris"]:
+			self.loadFromSklearn(DATASETNAME = source_file)
 			
-		elif source_file == "weka":
-			self.loadWekaFormat()
+		elif source_file in ["optdigits", "pendigits", "LIRMM"]:
+			self.loadWekaFormat(DATASETNAME = source_file)
 			
 		else:
 			file_name, file_extension = os.path.splitext( source_file )
@@ -22,7 +23,7 @@ class Data:
 				print "TODO"
 	
 	#---------------------------------------
-	def loadWekaFormat(self, DATASETNAME = "optdigits"): # optdigits, pendigits
+	def loadWekaFormat(self, DATASETNAME):
 		dataset = DatasetLoader("datasets\\"+DATASETNAME)
 		
 		self.Ty = list(dataset.labels_test)
@@ -40,12 +41,20 @@ class Data:
 		self.target_name = "target"
 		
 	#---------------------------------------
-	def loadFromSklearn(self): # TODO add other datasets etc.
-		digits = load_digits()
+	def loadFromSklearn(self, DATASETNAME, test_split = 0.3): # TODO add other datasets etc.
+		if DATASETNAME == "digits": dataset = load_digits()
+		if DATASETNAME == "iris": dataset = load_iris()
+		# elif 
 		
-		self.Y = [y for y in digits["target"]]
+		X, Y = Util.shuffle_related_lists( dataset["data"], dataset["target"] )
+		
+		nb_test = int ( len(Y) * test_split )
+		self.Ty = [ y for y in Y[:nb_test] ]
+		self.Tx = [ list(x) for x in X[:nb_test] ]
+		
+		self.Y = [ y for y in Y[nb_test:] ]
 		self.YY = self.Y[:]
-		self.X = [list(x) for x in digits["data"]]
+		self.X = [ list(x) for x in X[nb_test:] ]
 		self.X_transpose = [ list(v) for v in zip(*self.X) ]
 		
 		self.nb_data = len(self.X)

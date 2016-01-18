@@ -11,8 +11,11 @@ class Data:
 		if source_file in ["digits", "iris"]:
 			self.loadFromSklearn(DATASETNAME = source_file)
 			
-		elif source_file in ["optdigits", "pendigits", "LIRMM"]:
+		elif source_file in ["optdigits", "pendigits", "LIRMM", "LandsatSatellite"]:
 			self.loadWekaFormat(DATASETNAME = source_file)
+			
+		elif source_file in ["CNAE9", "dataBanknoteAuthentication"]:
+			self.loadRafFormat(DATASETNAME = source_file)
 			
 		else:
 			file_name, file_extension = os.path.splitext( source_file )
@@ -21,7 +24,30 @@ class Data:
 				self.readFromMatlab( source_file, target_name )
 			else:
 				print "TODO"
+				
+		print "Stats: ..." # nb data, nb features, nb classes, nb data per class, nb data per class in first 50 instances (for init)
 	
+	#---------------------------------------
+	def loadRafFormat(self, DATASETNAME, test_split = 0.3):
+		X = np.genfromtxt("datasets\\"+DATASETNAME+'.raf', delimiter=',')[:,:-1] ; X = [list(x) for x in X]
+		Y = np.genfromtxt("datasets\\"+DATASETNAME+'.raf', delimiter=',', usecols=-1, dtype=str)
+		X, Y = Util.shuffle_related_lists( X, Y )
+		
+		nb_test = int ( len(Y) * test_split )
+		self.Ty = [ y for y in Y[:nb_test] ]
+		self.Tx = [ list(x) for x in X[:nb_test] ]
+		
+		self.Y = [ y for y in Y[nb_test:] ]
+		self.YY = self.Y[:]
+		self.X = [ list(x) for x in X[nb_test:] ]
+		self.X_transpose = [ list(v) for v in zip(*self.X) ]
+		
+		self.nb_data = len(self.X)
+		self.nb_features = len(self.X[0])
+		
+		self.features_name = [ "feature "+str(i) for i in range(self.nb_features) ]
+		self.target_name = "target"
+		
 	#---------------------------------------
 	def loadWekaFormat(self, DATASETNAME):
 		dataset = DatasetLoader("datasets\\"+DATASETNAME)

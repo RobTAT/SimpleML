@@ -13,7 +13,9 @@ if __name__ == "__main__":
 	viz = Visualize()
 	colors = ['y','c','m','b','g','k','r']
 	
-	datasetname = "iris"
+	# datasetname = "optdigits"
+	# datasetname = "pendigits"
+	datasetname = "CNAE9"
 	data = Data( source_file = datasetname )
 	print "nb data points:", len(data.X), "nb features in data:", data.nb_features
 	
@@ -54,18 +56,18 @@ if __name__ == "__main__":
 	'''
 	#-----------------------------------
 	# '''
-	AL_Method = "etc_" # margin proba entropy random etc, etc_ weight  //  expectedErrorReduction test
+	AL_Method = "intuition" # margin etc, etc_ proba entropy random weight  //  expectedErrorReduction test intuition
 	AL_Init = 50
+	filename = datasetname+"."+AL_Method+"."+str(AL_Init)
 	
-	al = ActiveLearning( data.X[:AL_Init], data.Y[:AL_Init], data.X[AL_Init:], data.Y[AL_Init:], data.Tx, data.Ty )
-	al.train( mtd = AL_Method )
+	al = ActiveLearning( data.X[:AL_Init], data.Y[:AL_Init], data.X[AL_Init:100], data.Y[AL_Init:100], data.Tx, data.Ty )
+	al.train( mtd = AL_Method, backupfile = filename )
 	
-	filename = datasetname+"."+AL_Method+"."+str(AL_Init)+".opt-"+str(al.optimization_limit)+"-"+al.optimization_method+".txt"
+	filename += ".opt-"+str(al.optimization_limit)+"-"+al.optimization_method+".txt"
 	Util.pickleSave(filename, al)
-	al = Util.pickleLoad(filename)
 	
-	viz = Visualize()
-	viz.plot( [range(len(al.accuracys)), al.accuracys], fig = filename+".png", color = 'r', marker = '-' )
+	al = Util.pickleLoad(filename)
+	viz = Visualize(); viz.plot( [range(len(al.accuracys)), al.accuracys], fig = filename+".png", color = 'r', marker = '-' )
 	# '''
 	#-----------------------------------
 	

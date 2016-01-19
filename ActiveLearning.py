@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import operator
-from Util import Util
+import Util
 from Visualize import Visualize
 from sklearn import svm, neighbors
 from Classification import Classification

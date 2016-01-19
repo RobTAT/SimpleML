@@ -2,7 +2,7 @@ import scipy.io
 import os
 import numpy as np
 from DatasetLoader import *
-from Util import Util
+import Util
 
 from sklearn.datasets import load_digits, load_iris
 

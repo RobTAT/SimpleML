@@ -24,18 +24,14 @@ class ActiveLearning:
 		self.clf = Classification( self.Lx, self.Ly, method = method, Vx = Lx+Ux, Vy = Ly+Uy )
 		self.clf.train()
 		
-		self.viz_A = []
-		self.viz_B = []
-		self.viz_C = []
-		self.viz_D = []
-		self.viz_E = []
-		self.viz_F = []
+		self.viz_A = []; self.viz_B = []; self.viz_C = []; self.viz_D = []; self.viz_E = []; self.viz_F = []
 		
 	#---------------------------------------
 	def train(self, mtd = "margin", backupfile = "backupfile"): # TODO implement sample_weight + make method to shuffle and return sublist with data_limit
 		backupfile += ".opt-"+str(self.optimization_limit)+"-"+self.optimization_method+".txt"
 		for i in range(self.budget):
 			if len(self.Ux) <= 1: break
+			# self.viz_A = []; self.viz_B = []; self.viz_C = []; self.viz_D = []; self.viz_E = []; self.viz_F = []
 			
 			ids, scores = self.sortForInformativeness(mtd)
 			id = ids[0]
@@ -169,54 +165,72 @@ class ActiveLearning:
 				if ix in ids[:self.optimization_limit]:
 					true_y = self.Uy[ self.Ux.index(x) ]
 					
-					temp_clf = Classification(self.Lx + [x], self.Ly + [true_y], method = self.clf.method); temp_clf.GAMMA, temp_clf.C = self.clf.GAMMA, self.clf.C
-					temp_clf.train()
+					temp_clf = Classification(self.Lx + [x], self.Ly + [true_y], method = self.clf.method)
+					temp_clf.GAMMA, temp_clf.C = self.clf.GAMMA, self.clf.C; temp_clf.train()
 					
 					# ---------------------
+					imp_x = [ xdp for xdp in self.Tx if temp_clf.predict_label(xdp) != self.clf.predict_label(xdp) ]
+					imp_y_hh = [ temp_clf.predict_label(xdp) for xdp in self.Tx if temp_clf.predict_label(xdp) != self.clf.predict_label(xdp) ]
+					
+					if len( set(imp_y_hh) ) > 1: 
+						# hh = Classification(imp_x, imp_y_hh, method = self.clf.method)
+						hh = Classification(imp_x + [x], imp_y_hh + [true_y], method = self.clf.method, tuning = False)
+						hh.GAMMA, hh.C = self.clf.GAMMA, self.clf.C; hh.train()
+					else:
+						hh = self.clf
+					# ---------------------
+					
 					h_inconsistant_truth = 0; hh_inconsistant_truth = 0; hh_inconsistant_h = 0; h_consistency = []; hh_consistency = []
 					for ilx, lx in enumerate(self.Lx):
-						h_consistency.append( self.clf.getPredictProba(1,lx) ) # 1.-self.clf.uncertainty_entropy(lx)
-						hh_consistency.append( temp_clf.getPredictProba(1,lx) ) # 1.-temp_clf.uncertainty_entropy(lx)
+						h_consistency.append( self.clf.getProbaOf( self.Ly[ilx], lx ) )
+						# hh_consistency.append( hh.getProbaOf( self.Ly[ilx], lx ) )
+						hh_consistency.append( hh.getProbaOf( self.Ly[ilx], lx ) if hh.predict_label(lx) == self.Ly[ilx] else 0. )
 						
 						if self.clf.predict_label(lx) != self.Ly[ilx]: h_inconsistant_truth += 1.
-						if temp_clf.predict_label(lx) != self.Ly[ilx]: hh_inconsistant_truth += 1.
-						if temp_clf.predict_label(lx) != self.clf.predict_label(lx): hh_inconsistant_h += 1.
-					h_consistency = sum(h_consistency)
-					hh_consistency = sum(hh_consistency)
+						if hh.predict_label(lx) != self.Ly[ilx]: hh_inconsistant_truth += 1.
+						if hh.predict_label(lx) != self.clf.predict_label(lx): hh_inconsistant_h += 1.
+					h_consistency = np.mean(h_consistency)
+					hh_consistency = np.mean(hh_consistency) if len( set(imp_y_hh) ) > 1 else 0.
 					
 					consistency_dif = hh_consistency - h_consistency
-					self.viz_F.append( consistency_dif )
 					
 					# ---------------------
-					diff = []; errors = 0.; trues = 0.; probs_true = 0;
+					diff = []; errors = 0.; trues = 0.; impacted = 0; impacted_probs = [];
 					for idp, dp in enumerate(self.Tx):
 						if temp_clf.predict_label(dp) != self.clf.predict_label(dp): ##################
-							probs_true += temp_clf.getPredictProba(1,dp)
+							impacted += 1.
+							impacted_probs.append( abs( temp_clf.getPredictProba(1,dp) - self.clf.getPredictProba(1,dp) ) )
 							if self.Ty[idp]!=temp_clf.predict_label(dp): errors += 1.
 							else: trues += 1.
 						
 						# if temp_clf.predict_label(dp) != self.clf.predict_label(dp) and self.Ty[idp]==temp_clf.predict_label(dp): diff.append( 1. )
 						# if temp_clf.predict_label(dp) != self.clf.predict_label(dp) and trues - errors > 0: diff.append( 1. )
-						if temp_clf.predict_label(dp) != self.clf.predict_label(dp): diff.append( 1. )
+						# if temp_clf.predict_label(dp) != self.clf.predict_label(dp): diff.append( 1. )
 						
-						# if temp_clf.predict_label(dp) != self.clf.predict_label(dp): diff.append( 1. - abs( np.mean(self.viz_F) - consistency_dif ) )
-						# if temp_clf.predict_label(dp) != self.clf.predict_label(dp) and consistency_dif < 0.: diff.append( 1. - abs( np.mean(self.viz_F) - consistency_dif ) )
+						if temp_clf.predict_label(dp) != self.clf.predict_label(dp): diff.append( 1. )
 						
 						else: diff.append( 0. )
 					diff = np.mean( diff )
 					
+					# diff = diff * np.mean(impacted_probs) # seems to be working ...
+					
 					# ---------------------
-					self.viz_A.append( consistency_dif )
+					# self.viz_A.append( consistency_dif )
+					self.viz_A.append( hh_consistency )
 					self.viz_B.append( errors )
 					self.viz_C.append( trues )
 					self.viz_D.append( trues - errors ); posI = [inb for inb,nbD in enumerate(self.viz_D) if nbD >= 0.]
-					self.viz_E.append( probs_true )
+					self.viz_E.append( impacted )
+					self.viz_F.append( np.mean(impacted_probs) )
 					viz = Visualize(); viz.plot( [self.viz_A, self.viz_B], fig = "test_errors.png", color = 'r', marker = 'o' )
 					vizu = Visualize(); vizu.plot( [self.viz_A, self.viz_C], fig = "test_trues.png", color = 'r', marker = 'o' )
 					vizuu = Visualize(); vizuu.plot( [self.viz_A, self.viz_D], fig = "test_trues_errors.png", color = 'r', marker = 'o' )
+					
 					vizuuu = Visualize(); vizuuu.do_plot( [self.viz_A, self.viz_E], color = 'r', marker = 'o' )
 					vizuuu.do_plot( [[self.viz_A[inb] for inb in posI], [self.viz_E[inb] for inb in posI]], color = 'b', marker = 'o' )
-					vizuuu.end_plot(fig = "probs_true.png")
+					vizuuu.end_plot(fig = "impacted.png")
+					
+					print hh_consistency, hh_inconsistant_truth, "---", len(imp_x), len( set(imp_y_hh) ), "============>", impacted, trues - errors
 					
 					informativeness = diff
 				else:

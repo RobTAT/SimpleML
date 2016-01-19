@@ -8,7 +8,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import *
 
 class Classification:
-	def __init__(self, X, Y, method = "svm", Vx = None, Vy = None):
+	def __init__(self, X, Y, method = "svm", Vx = None, Vy = None, tuning = True):
 		self.X = X
 		self.Y = Y
 		
@@ -21,10 +21,10 @@ class Classification:
 		self.h = None
 		
 		if method == "svm":
-			self.GAMMA, self.C = self.svm_best_params()
+			if tuning: self.GAMMA, self.C = self.svm_best_params()
 			
 		elif method == "knn":
-			self.K = self.knn_best_params()
+			if tuning: self.K = self.knn_best_params()
 		
 	#---------------------------------------
 	def svm_best_params(self, data_limit = 1500):

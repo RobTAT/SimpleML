@@ -2,7 +2,7 @@ import random
 import numpy as np
 from Data import Data
 from ActiveLearning import ActiveLearning
-from Util import Util
+import Util
 from Visualize import Visualize
 
 #-----------------------------------

@@ -1,7 +1,7 @@
 import numpy as np
 import time
 import os
-
+from scipy.spatial import distance
 import mdp
 
 from Visualize import Visualize
@@ -11,18 +11,21 @@ class GNG:
 		self.data = data # FIXME
 		self.gng = mdp.nodes.GrowingNeuralGasNode(max_nodes = max_nodes, eps_b=eps_b, eps_n=eps_n, max_age=max_age, lambda_=period, d=d, alpha=alpha)
 		
+		self.nb_nodes = 0
+		
 	#---------------------------------------
 	def train(self, X, step = None, directory = "graph_plots\\"):
 		if step is None:
 			self.gng.train( np.array( X ) )
-			self.plot_graph()
+			# self.plot_graph()
 		else:
 			for i in range( 0, len(X), step ):
 				self.gng.train( np.array( X[i:i+step] ) )
 				self.plot_graph(data = X, iter = i+step, directory = directory)
 				# self.plot_graph(iter = i+step, directory = directory)
 		
-		self.gng.stop_training()
+		# self.gng.stop_training() # FIXME
+		self.nb_nodes = len( self.gng.get_nodes_position() )
 		
 	#---------------------------------------
 	def get_ccn(self):
@@ -36,22 +39,29 @@ class GNG:
 	#---------------------------------------
 	def get_nodes_positions(self):
 		return self.gng.get_nodes_position()
-	
+		
+	#---------------------------------------
+	def getNearestDist(self, x):
+		dists = np.array([ distance.euclidean(pos, x) for pos in self.get_nodes_positions() ])
+		ids = dists.argsort()
+		dists = dists.take(ids)
+		return dists[0]
+		
 	#---------------------------------------
 	def plot_graph(self, data = None, iter = None, directory = "graph_plots\\"): # TODO: this should be generalized and added to Vizualize.py
 		viz = Visualize()
 		
 		if data is not None:	
-			viz.do_plot( zip( *data[:iter] ), color = 'y', marker = '.')
-			# viz.do_plot( zip( *data[:iter] ), color = self.data.Y[:iter], marker = '.')
+			viz.do_plot( zip( *data[:iter] )[:3], color = 'y', marker = '.')
+			# viz.do_plot( zip( *data[:iter] )[:3], color = self.data.Y[:iter], marker = '.')
 		
-		viz.do_plot( zip( *self.get_nodes_positions() ), color = 'r', marker = 'o')
+		viz.do_plot( zip( *self.get_nodes_positions() )[:3], color = 'r', marker = 'o')
 		
 		for e in self.gng.graph.edges:
 			pos_head = e.head.data.pos
 			pos_tail = e.tail.data.pos
 			
-			viz.do_plot( zip(* [pos_head, pos_tail] ) , color = 'r', marker='-')
+			viz.do_plot( zip(* [pos_head, pos_tail] )[:3], color = 'r', marker='-')
 		
 		
 		if not os.path.exists(directory): os.makedirs(directory)

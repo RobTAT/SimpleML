@@ -33,11 +33,10 @@ DBFILES = [ f for f in os.listdir(DB_PATH) if os.path.isfile(os.path.join(DB_PAT
 
 # Time horizon
 TH1 = 7 # period where hists are collected for computing the matrix
-TH2 = 30 # period where p-values are computed (the moving average)
+TH2 = 15 # period where p-values are computed (the moving average)
 
 ################################################################################################
 SIGNIFICANCE = 0.05 # repair is significant if its change is higher than SIGNIFICANCE
-# SIGNIFICANCE = 0.8 # repair is significant if its change is higher than SIGNIFICANCE
 VELOCITY = 5 # distance (in days) between repair date and the changes close to that date (tolerance for the possibly shifted repair dates)
 
 ################################################################################################

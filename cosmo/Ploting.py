@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.dates import DayLocator, HourLocator, DateFormatter, drange, MonthLocator
 import datetime
+import os
 import Util
 
 class Ploting(object):
@@ -18,8 +19,11 @@ class Ploting(object):
 		self.fig.set_size_inches(plot_h, plot_w)
 		
 	# -------------------------------------------------------------------
-	def savePlot(self):
-		plt.savefig('_plt_' + self.busname + '.png')
+	def savePlot(self, dir = ''):
+		if dir != '' and not os.path.exists(dir):
+			os.makedirs(dir)
+		
+		plt.savefig(dir + '_plt_' + self.busname + '.png')
 		plt.close()
 		
 	# -------------------------------------------------------------------
@@ -37,7 +41,9 @@ class Ploting(object):
 	# -------------------------------------------------------------------
 	def plotDeviations(self, Dev1, Dev2):
 		self.axs[2].plot_date(self.dates, Dev1, 'b.')
+		self.axs[2].plot_date(self.dates, Dev1, 'b-')
 		self.axs[2].plot_date(self.dates, Dev2, 'r.')
+		self.axs[2].plot_date(self.dates, Dev2, 'r-')
 	
 	# -------------------------------------------------------------------
 	def plotChanges(self, entropies, changes, repair_dates_significant, repair_significance):

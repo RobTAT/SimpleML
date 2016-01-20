@@ -3,6 +3,8 @@ import numpy as np
 import os
 import sys
 
+from GNG import GNG
+from IGNG import IGNG
 import Util
 import cosmo.Anomaly as como_anomaly
 import cosmo.Ploting as como_ploting
@@ -21,6 +23,10 @@ if __name__ == "__main__":
 	
 	#-----------------------------------
 	for id_bus in range( len(all_buses) ): # for each test bus
+		h = IGNG( radius = PARAMS["R"] ); dir_imgs = "01Mat_online_IGNG/"
+		# h = GNG(period = 1000); dir_imgs = "01_online_GNG/"
+		h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
+		
 		own_test = all_buses[id_bus]
 		fleet_test = all_buses[:id_bus] + all_buses[id_bus+1 :]
 		
@@ -38,13 +44,19 @@ if __name__ == "__main__":
 			fleet_test_ = [ Util.shrink(i, bus, TH1) for bus in fleet_test ]
 			flat_fleet_test_ = Util.flatList( fleet_test_ )
 			
-			pvalue1, score1 = como_anomaly.normalityProba_V1( "KNN", flat_fleet_test_, his_test, all_buses, id_bus, i )
-			pvalue2, score2 = como_anomaly.normalityProba_V2( "RNN", own_test_, his_test, all_buses, id_bus, i )
-			# pvalue2, score2 = pvalue1, score1 = 0.5,0.5
-			# pvalue1, score1 = pvalue2, score2
 			
-			Z1 += [ pvalue1 ]; Z2 += [ pvalue2 ]
-			S1 += [ score1 ]; S2 += [ score2 ]
+			pvalue1, score1 = como_anomaly.normalityProba_V1( "online", flat_fleet_test_, his_test, all_buses, id_bus, i, h )
+			# pvalue1, score1 = como_anomaly.normalityProba_V1( "IGNG", flat_fleet_test_, his_test, all_buses, id_bus, i )
+			# pvalue1, score1 = como_anomaly.normalityProba_V1( "GNG", flat_fleet_test_, his_test, all_buses, id_bus, i )
+			# pvalue1, score1 = como_anomaly.normalityProba_V1( "KNN", flat_fleet_test_, his_test, all_buses, id_bus, i )
+			# pvalue2, score2 = como_anomaly.normalityProba_V2( "RNN", own_test_, his_test, all_buses, id_bus, i )
+			pvalue2, score2 = 0.5,0.5
+			
+			h.train( [ bus[0] for bus in fleet_test_ ] )# ; print "nb_nodes", h.nb_nodes
+			
+			
+			Z1.append( pvalue1 ); Z2.append( pvalue2 )
+			S1.append( score1 ); S2.append( score2 )
 		
 		#--------------------------
 		connexion_sig, cursor_sig = Util.connectDB(DB_PATH+filename)
@@ -79,11 +91,10 @@ if __name__ == "__main__":
 		image.plotChanges(entropies, changes, repair_dates_significant, repair_significance)
 		
 		#----------
-		dates_mil_vsr, values_mil_vsr = como_mileage.getMileage(cursor_vsr, busname, fromVsr = True)
-		dates_mil_sig, values_mil_sig = como_mileage.getMileage(cursor_sig_mil, busname, fromVsr = False)
-		image.plotMileage( dates_mil_vsr, values_mil_vsr, dates_mil_sig, values_mil_sig )
-		
+		# dates_mil_vsr, values_mil_vsr = como_mileage.getMileage(cursor_vsr, busname, fromVsr = True)
+		# dates_mil_sig, values_mil_sig = como_mileage.getMileage(cursor_sig_mil, busname, fromVsr = False)
+		# image.plotMileage( dates_mil_vsr, values_mil_vsr, dates_mil_sig, values_mil_sig )
 		
 		#----------
-		image.savePlot()
+		image.savePlot(dir_imgs)
 		connexion_sig.close(); connexion_vsr.close()

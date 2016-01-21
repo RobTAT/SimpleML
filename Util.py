@@ -1,12 +1,18 @@
 import cPickle
 import json
 import random
+import os
 import numpy as np
 import sqlite3
 import datetime
 import math
 from itertools import tee, izip
 
+#---------------------------------------
+def mkdir(dir):
+	if not os.path.exists(dir):
+		os.makedirs(dir)
+	
 #---------------------------------------
 def slidingWindow(iterable, size):
 	iters = tee(iterable, size)

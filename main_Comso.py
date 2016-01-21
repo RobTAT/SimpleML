@@ -15,22 +15,33 @@ import cosmo.HistogramExtraction as como_extract
 from cosmo.Parameters import *
 
 #-----------------------------------
-def vizualize_buses( all_buses ):
-	viz = Visualize()
-	c = viz.colors( len(all_buses) )
+def vizualize_buses( all_buses, dates_all_buses, dim = 2, path = "buses_viz/" ):
+	Util.mkdir(path)
+	
+	viz0 = Visualize(); viz1 = Visualize(); viz2 = Visualize()
+	c = Visualize.colors( len(all_buses) )
 	
 	D = Util.flatList(all_buses)
-	viz.PCA_Plot( zip(*D), dim = 2, fig = "PCA_Buses.png", color='b' )
-	X = viz.PCA_Transform( zip(*D), dim = 2 )
-	for ib in range( len(all_buses) ):
-		print ib, 
-		Xb = [ x for i,x in enumerate(X) if D[i] in all_buses[ib] ]
-		viz.do_plot( zip(*Xb), color = c[ib] )
-	viz.end_plot(fig = "PCA_BusesC.png")
+	viz1.PCA_Plot( zip(*D), dim = dim, fig=path+"_Buses_All.png", color='b' )
 	
-	# for t in xrange(0, len(all_buses[0]), 100): viz.PCA_Plot( zip(* Util.flatList([bus[t:t+100] for bus in all_buses])), dim=2, fig="PCA_Buses_"+str(t+100)+".png")
-	# for id_bus, bus in enumerate( all_buses ): viz.PCA_Plot( zip(*bus), dim=2, fig="PCA_Bus"+str(id_bus)+".png")
-
+	X = viz1.PCA_Transform( zip(*D), dim = dim )
+	all_buses_transformed = []
+	for ib in range( len(all_buses) ):
+		print ib+1, 
+		Xb = [ x for i,x in enumerate(X) if D[i] in all_buses[ib] ]
+		all_buses_transformed.append( Xb )
+		viz0.do_plot( zip(*Xb), color = c[ib] )
+		viz1.plot( zip(*Xb), fig=path+"Bus"+str(ib)+".png", color = c[ib] )
+		
+	viz0.end_plot(fig=path+"_Buses_All_c.png")
+	
+	window = 30; step = 10
+	for t in xrange(0, len(all_buses[0]), step):
+		viz2.do_plot( [[-0.39, 0.39], [-0.39, 0.39]], color='w' )
+		for ib, bus in enumerate(all_buses_transformed):
+			if len(bus[t:t+window]) > 0: viz2.do_plot( zip(* bus[t:t+window] ), color = c[ib] )
+		viz2.end_plot(fig=path+"_Buses_"+str(t+window)+".png")
+		
 #-----------------------------------
 
 if __name__ == "__main__":
@@ -40,13 +51,14 @@ if __name__ == "__main__":
 	(all_buses, periods_all_buses) = Util.pickleLoad(DATA_FILE_NAME+"_"+SIGNAL_CODE+".txt")
 	dates_all_buses = [ [ Util.getDate(tm) for tm in times ] for times in periods_all_buses ]
 	
-	vizualize_buses(all_buses)
+	vizualize_buses(all_buses, dates_all_buses); exit(0)
 	
 	#-----------------------------------
 	for id_bus in range( len(all_buses) ): # for each test bus
-		# h = IGNG( radius = PARAMS["R"] ); dir_imgs = "005_online_IGNG/"
-		# h = GNG(period = 1000); dir_imgs = "005_online_GNG/"
-		# h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
+		dir_imgs = "KNN/"
+		
+		# h = IGNG( radius = PARAMS["R"] ); h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
+		# h = GNG(period = 1000); h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
 		
 		own_test = all_buses[id_bus]
 		fleet_test = all_buses[:id_bus] + all_buses[id_bus+1 :]

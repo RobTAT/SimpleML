@@ -19,8 +19,9 @@ class Visualize:
 		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
 	
 	#---------------------------------------
-	def colors(self, nb):
-		cmap = plt.get_cmap('gnuplot')
+	@staticmethod
+	def colors(nb):
+		cmap = plt.get_cmap('gist_ncar')
 		return [cmap(i) for i in np.linspace(0, 1, nb)]
 		
 	#---------------------------------------

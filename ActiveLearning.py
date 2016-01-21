@@ -43,7 +43,7 @@ class ActiveLearning:
 			self.Ly.append(qy)
 			self.Ux.pop(id)
 			self.Uy.pop(id)
-
+			
 			self.clf.X = self.Lx; self.clf.Y = self.Ly
 			self.clf.train()
 			
@@ -160,6 +160,23 @@ class ActiveLearning:
 				else:
 					informativeness = 0.
 				
+			#---------------------------------------------------------
+			elif mtd == "intuition":
+				if ix in ids[:self.optimization_limit]:
+					true_y = self.Uy[ self.Ux.index(x) ]
+					
+					temp_clf = Classification(self.Lx + [x], self.Ly + [true_y], method = self.clf.method)
+					temp_clf.GAMMA, temp_clf.C = self.clf.GAMMA, self.clf.C; temp_clf.train()
+					
+					ucts = [ temp_clf.getPredictProba(1,dp) - self.clf.getPredictProba(1,dp) for dp in self.Tx ]
+					ids_ucts = (-np.array(ucts)).argsort()[:50]
+					
+					# diff = np.mean( [ 1. if temp_clf.predict_label(dp) != self.clf.predict_label(dp) else 0. for dp in self.Tx ] )
+					diff = np.mean([1. if temp_clf.predict_label(dp) != self.clf.predict_label(dp) and idp in ids_ucts else 0. for idp,dp in enumerate(self.Tx) ])
+					
+					informativeness = diff
+				else:
+					informativeness = 0.
 			#---------------------------------------------------------
 			elif mtd == "intuition":
 				if ix in ids[:self.optimization_limit]:

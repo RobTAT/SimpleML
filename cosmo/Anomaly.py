@@ -39,9 +39,7 @@ class AnomalyModel:
 			
 	def getAnomalyScore(self, x, inversed = False):
 		if self.method == "online":
-			# alpha_m = self.h.getNearestDist(x)
-			# alpha_m = 1. if self.h.getNearestDist(x) > PARAMS["R"] else 0.
-			alpha_m = 1. if self.h.getNearestDistToMature(x) > PARAMS["R"] else 0.
+			alpha_m = self.h.getNearestDist(x) # alpha_m = self.h.getNearestDistToMature(x)
 			if inversed == True: alpha_m = 1. / alpha_m
 			
 		if self.method == "IGNG":

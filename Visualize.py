@@ -1,6 +1,6 @@
 import sys
 import os
-
+import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pylab as pl
@@ -19,14 +19,26 @@ class Visualize:
 		self.xyz_range = { 'x':[float("inf"), float("-inf")], 'y':[float("inf"), float("-inf")], 'z':[float("inf"), float("-inf")] }
 	
 	#---------------------------------------
-	def PCA_Plot(self, axs, axs_labels = None, color = 'r', marker = '.', fig = None):
+	def colors(self, nb):
+		cmap = plt.get_cmap('gnuplot')
+		return [cmap(i) for i in np.linspace(0, 1, nb)]
+		
+	#---------------------------------------
+	def PCA_Plot(self, axs, dim = 3, axs_labels = None, color = 'r', marker = '.', fig = None):
 		X = [ list(v) for v in zip(*axs) ]
-		pca = PCA(n_components=3)
+		pca = PCA(n_components=dim)
 		XX = pca.fit(X).transform(X)
 		XX = [list(x) for x in XX]
 		axs_r = [ list(v) for v in zip(*XX) ]
 		
 		self.plot(axs_r, axs_labels, color, marker, fig)
+		
+	#---------------------------------------
+	def PCA_Transform(self, axs, dim = 3):
+		X = [ list(v) for v in zip(*axs) ]
+		pca = PCA(n_components=dim)
+		XX = pca.fit(X).transform(X)
+		return [list(x) for x in XX]
 	
 	#---------------------------------------
 	def start_plot( self, axs_labels ):

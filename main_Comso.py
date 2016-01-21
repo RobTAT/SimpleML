@@ -3,6 +3,7 @@ import numpy as np
 import os
 import sys
 
+from Visualize import Visualize
 from GNG import GNG
 from IGNG import IGNG
 import Util
@@ -14,6 +15,24 @@ import cosmo.HistogramExtraction as como_extract
 from cosmo.Parameters import *
 
 #-----------------------------------
+def vizualize_buses( all_buses ):
+	viz = Visualize()
+	c = viz.colors( len(all_buses) )
+	
+	D = Util.flatList(all_buses)
+	viz.PCA_Plot( zip(*D), dim = 2, fig = "PCA_Buses.png", color='b' )
+	X = viz.PCA_Transform( zip(*D), dim = 2 )
+	for ib in range( len(all_buses) ):
+		print ib, 
+		Xb = [ x for i,x in enumerate(X) if D[i] in all_buses[ib] ]
+		viz.do_plot( zip(*Xb), color = c[ib] )
+	viz.end_plot(fig = "PCA_BusesC.png")
+	
+	# for t in xrange(0, len(all_buses[0]), 100): viz.PCA_Plot( zip(* Util.flatList([bus[t:t+100] for bus in all_buses])), dim=2, fig="PCA_Buses_"+str(t+100)+".png")
+	# for id_bus, bus in enumerate( all_buses ): viz.PCA_Plot( zip(*bus), dim=2, fig="PCA_Bus"+str(id_bus)+".png")
+
+#-----------------------------------
+
 if __name__ == "__main__":
 	random.seed( 12345 )
 	
@@ -21,11 +40,13 @@ if __name__ == "__main__":
 	(all_buses, periods_all_buses) = Util.pickleLoad(DATA_FILE_NAME+"_"+SIGNAL_CODE+".txt")
 	dates_all_buses = [ [ Util.getDate(tm) for tm in times ] for times in periods_all_buses ]
 	
+	vizualize_buses(all_buses)
+	
 	#-----------------------------------
 	for id_bus in range( len(all_buses) ): # for each test bus
-		h = IGNG( radius = PARAMS["R"] ); dir_imgs = "01Mat_online_IGNG/"
-		# h = GNG(period = 1000); dir_imgs = "01_online_GNG/"
-		h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
+		# h = IGNG( radius = PARAMS["R"] ); dir_imgs = "005_online_IGNG/"
+		# h = GNG(period = 1000); dir_imgs = "005_online_GNG/"
+		# h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
 		
 		own_test = all_buses[id_bus]
 		fleet_test = all_buses[:id_bus] + all_buses[id_bus+1 :]
@@ -45,14 +66,14 @@ if __name__ == "__main__":
 			flat_fleet_test_ = Util.flatList( fleet_test_ )
 			
 			
-			pvalue1, score1 = como_anomaly.normalityProba_V1( "online", flat_fleet_test_, his_test, all_buses, id_bus, i, h )
+			# pvalue1, score1 = como_anomaly.normalityProba_V1( "online", flat_fleet_test_, his_test, all_buses, id_bus, i, h )
 			# pvalue1, score1 = como_anomaly.normalityProba_V1( "IGNG", flat_fleet_test_, his_test, all_buses, id_bus, i )
 			# pvalue1, score1 = como_anomaly.normalityProba_V1( "GNG", flat_fleet_test_, his_test, all_buses, id_bus, i )
-			# pvalue1, score1 = como_anomaly.normalityProba_V1( "KNN", flat_fleet_test_, his_test, all_buses, id_bus, i )
+			pvalue1, score1 = como_anomaly.normalityProba_V1( "KNN", flat_fleet_test_, his_test, all_buses, id_bus, i )
 			# pvalue2, score2 = como_anomaly.normalityProba_V2( "RNN", own_test_, his_test, all_buses, id_bus, i )
 			pvalue2, score2 = 0.5,0.5
 			
-			h.train( [ bus[0] for bus in fleet_test_ ] )# ; print "nb_nodes", h.nb_nodes
+			# h.train( [ bus[0] for bus in fleet_test_ ] )# ; print "nb_nodes", h.nb_nodes
 			
 			
 			Z1.append( pvalue1 ); Z2.append( pvalue2 )

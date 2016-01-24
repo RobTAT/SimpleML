@@ -2,8 +2,8 @@ import random
 import numpy as np
 import os
 import sys
+import datetime
 
-from Visualize import Visualize
 from GNG import GNG
 from IGNG import IGNG
 import Util
@@ -13,52 +13,25 @@ import cosmo.Changes as como_changes
 import cosmo.Mileage as como_mileage
 import cosmo.HistogramExtraction as como_extract
 from cosmo.Parameters import *
+from sklearn.neighbors import NearestNeighbors
 
-#-----------------------------------
-def vizualize_buses( all_buses, dates_all_buses, dim = 2, path = "buses_viz/" ):
-	Util.mkdir(path)
-	
-	viz0 = Visualize(); viz1 = Visualize(); viz2 = Visualize()
-	c = Visualize.colors( len(all_buses) )
-	
-	D = Util.flatList(all_buses)
-	viz1.PCA_Plot( zip(*D), dim = dim, fig=path+"_Buses_All.png", color='b' )
-	
-	X = viz1.PCA_Transform( zip(*D), dim = dim )
-	all_buses_transformed = []
-	for ib in range( len(all_buses) ):
-		print ib+1, 
-		Xb = [ x for i,x in enumerate(X) if D[i] in all_buses[ib] ]
-		all_buses_transformed.append( Xb )
-		viz0.do_plot( zip(*Xb), color = c[ib] )
-		viz1.plot( zip(*Xb), fig=path+"Bus"+str(ib)+".png", color = c[ib] )
-		
-	viz0.end_plot(fig=path+"_Buses_All_c.png")
-	
-	window = 30; step = 10
-	for t in xrange(0, len(all_buses[0]), step):
-		viz2.do_plot( [[-0.39, 0.39], [-0.39, 0.39]], color='w' )
-		for ib, bus in enumerate(all_buses_transformed):
-			if len(bus[t:t+window]) > 0: viz2.do_plot( zip(* bus[t:t+window] ), color = c[ib] )
-		viz2.end_plot(fig=path+"_Buses_"+str(t+window)+".png")
-		
 #-----------------------------------
 
 if __name__ == "__main__":
 	random.seed( 12345 )
 	
-	# como_extract.computeHistogramsAllBuses()
+	# como_extract.computeHistogramsAllBuses(); exit(0)
 	(all_buses, periods_all_buses) = Util.pickleLoad(DATA_FILE_NAME+"_"+SIGNAL_CODE+".txt")
 	dates_all_buses = [ [ Util.getDate(tm) for tm in times ] for times in periods_all_buses ]
 	
-	vizualize_buses(all_buses, dates_all_buses); exit(0)
+	# como_ploting.Ploting.vizualize_buses(all_buses, dates_all_buses, m = '.'); exit(0)
 	
 	#-----------------------------------
 	for id_bus in range( len(all_buses) ): # for each test bus
-		dir_imgs = "KNN/"
+		dir_imgs = "centroid/"
 		
 		# h = IGNG( radius = PARAMS["R"] ); h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
-		# h = GNG(period = 1000); h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
+		# h = GNG(period = 100); h.train( [Util.centroid( Util.flatList(all_buses) )] ) 
 		
 		own_test = all_buses[id_bus]
 		fleet_test = all_buses[:id_bus] + all_buses[id_bus+1 :]
@@ -77,13 +50,18 @@ if __name__ == "__main__":
 			fleet_test_ = [ Util.shrink(i, bus, TH1) for bus in fleet_test ]
 			flat_fleet_test_ = Util.flatList( fleet_test_ )
 			
+			# ------
+			center = Util.centroid( own_test_ ); score1 = Util.dist(his_test, center); pvalue1 = 0.5
+			# pvalue1, score1 = como_anomaly.normalityProba_V3( "centroid", own_test_, his_test, all_buses, id_bus, i )
+			# pvalue1, score1 = como_anomaly.normalityProba_V3( "medoid", own_test_, his_test, all_buses, id_bus, i )
+			# ------
 			
 			# pvalue1, score1 = como_anomaly.normalityProba_V1( "online", flat_fleet_test_, his_test, all_buses, id_bus, i, h )
 			# pvalue1, score1 = como_anomaly.normalityProba_V1( "IGNG", flat_fleet_test_, his_test, all_buses, id_bus, i )
 			# pvalue1, score1 = como_anomaly.normalityProba_V1( "GNG", flat_fleet_test_, his_test, all_buses, id_bus, i )
-			pvalue1, score1 = como_anomaly.normalityProba_V1( "KNN", flat_fleet_test_, his_test, all_buses, id_bus, i )
+			# pvalue1, score1 = como_anomaly.normalityProba_V1( "KNN", flat_fleet_test_, his_test, all_buses, id_bus, i )
 			# pvalue2, score2 = como_anomaly.normalityProba_V2( "RNN", own_test_, his_test, all_buses, id_bus, i )
-			pvalue2, score2 = 0.5,0.5
+			pvalue2, score2 = 0.5, 0.5
 			
 			# h.train( [ bus[0] for bus in fleet_test_ ] )# ; print "nb_nodes", h.nb_nodes
 			

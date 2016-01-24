@@ -9,6 +9,21 @@ import math
 from itertools import tee, izip
 
 #---------------------------------------
+class DatedList(list):
+	def __init__(self, values, dates):
+		list.__init__(self, values)
+		self.dates = dates
+		self._dt_to_idx = {k:v for v,k in enumerate(dates)}
+		
+	def __getitem__(self, arg):
+		if isinstance(arg, slice):
+			start = self._dt_to_idx[arg.start]
+			stop = self._dt_to_idx[arg.stop]
+			return list.__getitem__(self, slice(start, stop, arg.step))
+		else:
+			return list.__getitem__(self, self._dt_to_idx[arg])
+			
+#---------------------------------------
 def mkdir(dir):
 	if not os.path.exists(dir):
 		os.makedirs(dir)
@@ -114,7 +129,13 @@ def weighted_choice(items, weights):
 
 #=====================================================================================================
 def centroid(X):
-	return [ np.mean(x) for x in zip(*X) ]
+	X_t = zip(*X)
+	return [ np.mean(x) for x in X_t ]
+	
+#=====================================================================================================
+def medoid(X):
+	X_t = zip(*X)
+	return [ np.median(x) for x in X_t ]
 	
 #=====================================================================================================
 def jsonSave(filename, ob):

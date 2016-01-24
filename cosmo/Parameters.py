@@ -24,6 +24,8 @@ DB_PATH = "C:/Users/mohbou/Desktop/MachineLearning Toolbox/datasets/kungsbacka/"
 
 # Name (actually subname) of the file containing the extracted histograms
 DATA_FILE_NAME = DB_PATH+"kungsbacka"
+# DATA_FILE_NAME = DB_PATH+"kungsbacka_clean"
+# DATA_FILE_NAME = DB_PATH+"kungsbacka_clean_clean"
 
 # The path to the database
 SIGNAL_CODE = "16929" # 16929 = WTAP, 16772 = Gearbox, 16644 = Mileage
@@ -32,7 +34,7 @@ SIGNAL_CODE = "16929" # 16929 = WTAP, 16772 = Gearbox, 16644 = Mileage
 DBFILES = [ f for f in os.listdir(DB_PATH) if os.path.isfile(os.path.join(DB_PATH,f)) and SIGNAL_CODE in f ]
 
 # Time horizon
-TH1 = 7 # period where hists are collected for computing the matrix
+TH1 = 30 # period where hists are collected for computing the matrix
 TH2 = 15 # period where p-values are computed (the moving average)
 
 ################################################################################################

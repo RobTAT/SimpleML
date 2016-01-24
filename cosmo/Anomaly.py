@@ -19,6 +19,12 @@ class AnomalyModel:
 		if self.method == "online":
 			self.h = h
 		
+		if self.method == "centroid":
+			self.h = Util.centroid( trainingSet )
+		
+		if self.method == "medoid":
+			self.h = Util.medoid( trainingSet )
+		
 		if self.method == "IGNG":
 			self.h = IGNG( radius = PARAMS["R"] ) # IGNG.estimate_radius( trainingSet )
 			self.h.train( trainingSet )
@@ -31,15 +37,23 @@ class AnomalyModel:
 		if self.method == "KNN":
 			self.h = NearestNeighbors(algorithm='ball_tree', metric='euclidean').fit(trainingSet)
 			
-		elif self.method == "RNN":
+		if self.method == "RNN":
 			self.h = NearestNeighbors(algorithm='ball_tree', metric='euclidean').fit(trainingSet)
 			
-		elif self.method == "SVM":
+		if self.method == "SVM":
 			self.h = svm.OneClassSVM(nu=PARAMS["NU"], kernel="rbf", gamma=PARAMS["GAMMA"]).fit(trainingSet)
 			
 	def getAnomalyScore(self, x, inversed = False):
 		if self.method == "online":
 			alpha_m = self.h.getNearestDist(x) # alpha_m = self.h.getNearestDistToMature(x)
+			if inversed == True: alpha_m = 1. / alpha_m
+			
+		if self.method == "centroid":
+			alpha_m = Util.dist(x, self.h)
+			if inversed == True: alpha_m = 1. / alpha_m
+			
+		if self.method == "medoid":
+			alpha_m = Util.dist(x, self.h)
 			if inversed == True: alpha_m = 1. / alpha_m
 			
 		if self.method == "IGNG":
@@ -55,12 +69,12 @@ class AnomalyModel:
 			alpha_m = sum( distances[0] )
 			if inversed == True: alpha_m = 1. / alpha_m
 			
-		elif self.method == "RNN":
+		if self.method == "RNN":
 			distances, indices = self.h.radius_neighbors(x, radius = PARAMS["R"])
 			alpha_m = 1. / ( 1. + sum( [ 1./di for di in distances[0] if di != 0 ] ) )
 			if inversed == True: alpha_m = 1. / alpha_m
 		
-		elif self.method == "SVM":
+		if self.method == "SVM":
 			alpha_m = -1. * self.h.decision_function(x)[0][0]
 			if inversed == True: alpha_m = -1. * alpha_m
 		
@@ -109,6 +123,27 @@ def getPValue_V2( all_buses, id_bus, i, alpha_m, anomalyMethod = "KNN", h = None
 	# return 1.*sum( [d for d in alphas if d >= alpha_m] ) / sum(alphas)
 
 ################################################################################################
+def getPValue_V3( all_buses, id_bus, i, alpha_m, anomalyMethod = "KNN", h = None ):
+	alphas = []
+	for id_bus_j in range( len(all_buses) ):
+		if id_bus_j == id_bus: continue;
+		
+		own = all_buses[id_bus_j]
+		fleet = all_buses[:id_bus_j] + all_buses[id_bus_j+1 :]
+		
+		own_ = Util.shrink(i, own, TH1)
+		fleet_ = [ Util.shrink(i, bus, TH1) for bus in fleet ]
+		flat_fleet_ = Util.flatList( fleet_ )
+		
+		model = AnomalyModel(own_, anomalyMethod, h)
+		for his_j in own_:
+			alpha = model.getAnomalyScore(his_j, inversed = False)
+			alphas += [alpha]
+	
+	return 1.*len( [d for d in alphas if d >= alpha_m] ) / len(alphas)
+	# return 1.*sum( [d for d in alphas if d >= alpha_m] ) / sum(alphas)
+
+################################################################################################
 def getZvalues( Z, mean_popu = 0.5, var_popu = 1./12, th = TH2):
 	std_popu = math.sqrt(var_popu) # std deviation for the uniform distribution
 	
@@ -140,6 +175,13 @@ def normalityProba_V2( method, flat_fleet_test_, his_test, all_buses, id_bus, i,
 	model = AnomalyModel(flat_fleet_test_, method, h)
 	alpha_m = model.getAnomalyScore(his_test, inversed = True)
 	pvalue = getPValue_V2( all_buses, id_bus, i, alpha_m, method, h )
+	return pvalue, alpha_m
+
+################################################################################################
+def normalityProba_V3( method, flat_fleet_test_, his_test, all_buses, id_bus, i, h = None ):
+	model = AnomalyModel(flat_fleet_test_, method, h)
+	alpha_m = model.getAnomalyScore(his_test, inversed = False)
+	pvalue = getPValue_V3( all_buses, id_bus, i, alpha_m, method, h )
 	return pvalue, alpha_m
 
 	

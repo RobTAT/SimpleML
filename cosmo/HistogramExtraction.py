@@ -8,6 +8,15 @@ import datetime
 import numpy as np
 
 ################################################################################################
+def getRepairs(busname):
+	connexion_vsr, cursor_vsr = Util.connectDB(DB_PATH+"_vsr.db")
+	if busname == '369': busname = '396'
+	repair_dates_str = cursor_vsr.execute( "SELECT DISTINCT Visits.Date FROM Visits,Operations WHERE Visits.VisitID = Operations.Visit AND Visits.Bus LIKE '%"+busname+"%'" )
+	repair_dates = [ Util.str2date(date_str, format = "%Y-%m-%d") for date_str in repair_dates_str ]
+	repair_dates_str = [ Util.date2str(dt, format = "%Y-%m-%d") for dt in repair_dates ]
+	return repair_dates_str
+
+################################################################################################
 def signalToHistogram(Sig): # ooo
 	his, bin_edges = np.histogram(Sig, bins=HIST_BINS, range=HIST_BRANGE)
 	s = sum(his)*1.0
@@ -58,13 +67,28 @@ def computeHistogramsAllBuses():
 	hists_all_buses = []; periods_all_buses = []
 	
 	for i_f, f in enumerate(DBFILES):
+		if "txt" in f: continue
 		print "\n========================> ", f, 100.*i_f / len(DBFILES)
+		
 		hists_one_bus, periods_one_bus = computeHistogramsOneBus(dbfile = DB_PATH+f)
+		
+		
+		repair_dates_str = getRepairs( f.split("_")[0] )
+		# plus1 = [Util.date2str( Util.str2date(dt, format = "%Y-%m-%d") + datetime.timedelta(days = 1), format = "%Y-%m-%d") for dt in repair_dates_str]
+		# minus1 = [Util.date2str( Util.str2date(dt, format = "%Y-%m-%d") + datetime.timedelta(days = -1), format = "%Y-%m-%d") for dt in repair_dates_str]
+		# repair_dates_str += plus1 + minus1
+		ids_filter = [ itm for itm, tm in enumerate(periods_one_bus) if Util.date2str(Util.getDate(tm), format = "%Y-%m-%d") in repair_dates_str ]
+		print len(ids_filter)*100./len(repair_dates_str)
+		hists_one_bus = [ hists_one_bus[id] for id in range(len(hists_one_bus)) if id not in ids_filter ]
+		periods_one_bus = [ periods_one_bus[id] for id in range(len(periods_one_bus)) if id not in ids_filter ]
+		
+		
 		hists_all_buses += [hists_one_bus]
 		periods_all_buses += [periods_one_bus]
-		# if i_f >= 1: break
 		
-	Util.pickleSave("./"+DATA_FILE_NAME+"_"+SIGNAL_CODE+".txt", (hists_all_buses, periods_all_buses))
+		# if 1+i_f >= 2: break
+		
+	Util.pickleSave(DATA_FILE_NAME+"_"+SIGNAL_CODE+".txt", (hists_all_buses, periods_all_buses))
 	print "Extracted data saved."
 
 ################################################################################################
